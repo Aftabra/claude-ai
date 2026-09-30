@@ -386,7 +386,7 @@ class DeepTester:
 
 
 def load_urls(path):
-    with open(path) as f:
+    with open(path, encoding="utf-8", errors="replace") as f:
         return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
 
