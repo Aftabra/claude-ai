@@ -141,10 +141,18 @@ def get_params(url: str):
     return [k for k, _ in parse_qsl(urlparse(url).query, keep_blank_values=True)]
 
 
+SIMILARITY_CAP = 20000  # cap input size so .ratio() stays fast on huge pages
+
+
 def similarity(a: str, b: str) -> float:
     if not a and not b:
         return 1.0
-    return difflib.SequenceMatcher(None, a, b).quick_ratio()
+    # .quick_ratio() is a fast character-multiset upper bound, not real
+    # similarity - it can badly overestimate short/structured text, which
+    # would undermine the false-positive-resistance this script relies on
+    # for boolean-blind SQLi detection. Use the real .ratio() instead; cap
+    # length so it stays fast on large pages.
+    return difflib.SequenceMatcher(None, a[:SIMILARITY_CAP], b[:SIMILARITY_CAP]).ratio()
 
 
 # ---------------------------------------------------------------------------
